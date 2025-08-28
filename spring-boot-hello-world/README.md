@@ -4,18 +4,6 @@
 
 ## How to Run Application
 
-**Start the application using any of the commands mentioned below**
-
-> **Note:** First two commands need to run inside the root folder of this project i.e inside the **spring-boot-hello-world** folder
-
-
-- **Using maven** <br/>``` mvn spring-boot:run```
-
-
-- **From jar file**
-  Create a jar file using '**mvn clean install**' command and then execute
-  <br/>```java -jar target/spring-boot-2-hello-world-1.0.2-SNAPSHOT.jar```
-
 
 - **Directly from IDE**
   <br/>```Right click on HelloWorldApplication.java and click on 'Run' option```
@@ -48,4 +36,5 @@
 - **To run a particular test class**
   <br/>```mvn -Dtest=HelloWorldControllerTest test```
   <br/>or
+
   <br/>```mvn -Dtest=HelloWorldApplicationTests test```
