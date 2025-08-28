@@ -1,0 +1,73 @@
+---
+resource_types:
+  - name: pull-request
+    type: registry-image
+    source:
+      repository: teliaoss/github-pr-resource
+
+resources:
+- name: spring-boot-hello-world-pr
+  type: pull-request
+  check_every: 30m
+  source:
+    base_branch: ((git-branch))
+    access_token: ((access_token))
+    disable_ci_skip: true
+    repository: ((git-repo))
+    states:
+      - OPEN
+
+jobs:
+- name: build-spring-boot
+  plan:
+  - get: spring-boot-hello-world-pr
+    trigger: true
+    version: every
+    params: { list_changed_files: true }
+  - put: update-status
+    resource: spring-boot-hello-world-pr
+    params:
+      path: spring-boot-hello-world-pr
+      status: pending    
+  - task: maven-build
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: maven
+          tag: "3.8.5-openjdk-17"
+      inputs:
+      - name: spring-boot-hello-world-pr
+      outputs:
+      - name: build-artifacts
+      run:
+        path: /bin/bash
+        args:
+        - -c
+        - |
+          cd spring-boot-hello-world-pr
+          echo "Starting Maven build..."
+          mvn clean install -B -DskipTests=false
+          echo "Build completed successfully!"
+          
+          # Copy artifacts to output
+          mkdir -p ../build-artifacts
+          cp target/*.jar ../build-artifacts/ || echo "No JAR files found"
+          cp pom.xml ../build-artifacts/
+          
+          echo "Build artifacts:"
+          ls -la ../build-artifacts/
+    on_success:
+      do:
+        - put: spring-boot-hello-world-pr
+          inputs: [ spring-boot-hello-world-pr ]
+          params:
+            path: spring-boot-hello-world-pr
+            status: success
+    on_failure:
+      do:
+        - put: spring-boot-hello-world-pr
+          params:
+            path: spring-boot-hello-world-pr
+            status: failure
